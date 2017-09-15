@@ -20,36 +20,40 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 
-import java.io.IOException;
-
 import io.realm.Realm;
+import io.realm.internal.IOException;
 
 import static android.app.Activity.RESULT_OK;
 
+
+
 public class InputDiaryFragment extends Fragment {
+
     private static final String DIARY_ID = "DIARY_ID";
     private static final int REQUEST_CODE = 1;
     private static final int PERMISSION_REQUEST_CODE = 2;
 
-    private long mDiaryId;
+    private long mDiaryID;
     private Realm mRealm;
     private EditText mTitleEdit;
     private EditText mBodyEdit;
     private ImageView mDiaryImage;
 
-    public static InputDiaryFragment newInstance(long diaryId) {
+    public static InputDiaryFragment newInsrance(long diaryId) {
         InputDiaryFragment fragment = new InputDiaryFragment();
         Bundle args = new Bundle();
         args.putLong(DIARY_ID, diaryId);
         fragment.setArguments(args);
         return fragment;
+
     }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mDiaryId = getArguments().getLong(DIARY_ID);
+            mDiaryID = getArguments().getLong(DIARY_ID);
         }
         mRealm = Realm.getDefaultInstance();
     }
@@ -62,9 +66,8 @@ public class InputDiaryFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_input_diary,
-                container, false);
+                             Bundle saveInstanceState) {
+        View v = inflater.inflate(R.layout.fragment_input_diary, container, false);
         mTitleEdit = (EditText) v.findViewById(R.id.title);
         mBodyEdit = (EditText) v.findViewById(R.id.bodyEditText);
         mDiaryImage = (ImageView) v.findViewById(R.id.diary_photo);
@@ -78,42 +81,45 @@ public class InputDiaryFragment extends Fragment {
 
         mTitleEdit.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count,
-                                          int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
             @Override
-            public void onTextChanged(CharSequence s, int start, int before,
-                                          int count) {}
+            public void onTextChanged(CharSequence s, int start, int count, int before) {
+            }
 
             @Override
             public void afterTextChanged(final Editable s) {
                 mRealm.executeTransactionAsync(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
-                        Diary diary = realm.where(Diary.class).equalTo("id",
-                                mDiaryId).findFirst();
+                        Diary diary = realm.where(Diary.class).equalTo("id", mDiaryID).findFirst();
                         diary.title = s.toString();
                     }
                 });
+
             }
         });
 
         mBodyEdit.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count,
-                                          int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before,
-                                      int count) {}
+            public void onTextChanged(CharSequence s, int start, int count, int before) {
+
+            }
 
             @Override
             public void afterTextChanged(final Editable s) {
                 mRealm.executeTransactionAsync(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
-                        Diary diary = realm.where(Diary.class).equalTo("id",
-                                mDiaryId).findFirst();
-                        diary.bodyText=s.toString();
+                        Diary diary = realm.where(Diary.class).equalTo("id", mDiaryID).findFirst();
+                        diary.bodyText = s.toString();
+
                     }
                 });
             }
@@ -122,19 +128,16 @@ public class InputDiaryFragment extends Fragment {
     }
 
     private void requestReadStorage(View view) {
-        if(ContextCompat.checkSelfPermission(getActivity(),
-                Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            if(shouldShowRequestPermissionRationale(
+        if (ContextCompat.checkSelfPermission(getActivity(),
+                Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            if (shouldShowRequestPermissionRationale(
                     Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                Snackbar.make(view, R.string.rationale,
-                        Snackbar.LENGTH_LONG).show();
+                Snackbar.make(view, R.string.rationale, Snackbar.LENGTH_LONG).show();
             }
 
             requestPermissions(new String[]{
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-            }, PERMISSION_REQUEST_CODE);
-
+                            Manifest.permission.READ_EXTERNAL_STORAGE}
+                    , PERMISSION_REQUEST_CODE);
         } else {
             pickImage();
         }
@@ -144,40 +147,36 @@ public class InputDiaryFragment extends Fragment {
         Intent intent = new Intent(Intent.ACTION_PICK,
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         intent.setType("image/*");
-        startActivityForResult(
-                Intent.createChooser(
-                        intent,
-                        getString(R.string.pick_image)
-                ),
-                REQUEST_CODE);
+        startActivityForResult(Intent.createChooser(
+                intent, getString(R.string.pick_image)
+        ), REQUEST_CODE);
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
 
             Uri uri = (data == null) ? null : data.getData();
-            if(uri != null) {
+            if (uri != null) {
                 try {
                     Bitmap img = MyUtils.getImageFromStream(
                             getActivity().getContentResolver(), uri);
                     mDiaryImage.setImageBitmap(img);
                 } catch (IOException e) {
                     e.printStackTrace();
+                } catch (java.io.IOException e) {
+                    e.printStackTrace();
                 }
+
                 mRealm.executeTransactionAsync(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
-                        Diary diary = realm.where(Diary.class)
-                                .equalTo("id", mDiaryId)
-                                .findFirst();
-                        BitmapDrawable bitmap =
-                                (BitmapDrawable) mDiaryImage.getDrawable();
-                        byte[] bytes = MyUtils.getByteFromImage
-                                (bitmap.getBitmap());
-                        if(bytes != null && bytes.length > 0) {
-                            diary.image=bytes;
+                        Diary diary = realm.where(Diary.class).equalTo("id", mDiaryID).findFirst();
+                        BitmapDrawable bitmap = (BitmapDrawable) mDiaryImage.getDrawable();
+                        byte[] bytes = MyUtils.getByteFromImage(bitmap.getBitmap());
+                        if (bytes != null && bytes.length > 0) {
+                            diary.image = bytes;
                         }
                     }
                 });
@@ -186,18 +185,19 @@ public class InputDiaryFragment extends Fragment {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                          @NonNull String[] permissions,
-                                          @NonNull int[] grantResults) {
-        if(requestCode == PERMISSION_REQUEST_CODE) {
-            if(grantResults.length != 1 ||
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length != 1 ||
                     grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                 Snackbar.make(mDiaryImage, R.string.permisson_deny,
                         Snackbar.LENGTH_LONG).show();
-
             } else {
                 pickImage();
             }
         }
     }
 }
+
+
+
